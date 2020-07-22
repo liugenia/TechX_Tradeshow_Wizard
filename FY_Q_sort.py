@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     for test_date in test_dates:
         print(test_date)
-        # first test - calculate quarter from the beginning of FY20. Problem: FY21 Q3 has an extra week, which messes it up
+        # first test - calculate quarter using beginning of FY20. Problem: FY21 Q3 has an extra week, which messes it up
         result = calc_fy_q(test_date)
         print('test1 1:\n\t', result)
         print(f'\tFY{result[0]} Q{result[1]}')
