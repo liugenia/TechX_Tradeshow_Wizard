@@ -40,12 +40,19 @@ def create_sheet(name):
     return response.result.id
 
 
+# make a new requests sheet with added color dot column
+# make a new map sheet for testing with original data, create fake data in requests and test adding it to the sheet
+# pull in data from test requests sheet, print out new (yellow) rows with calculated FY/Q
+
+# red = don't add, not added, yellow = add, green = don't add, already added
+
 # implement fiscal year separations per Cisco calendar
+# on run transfer of new row/information of a show,
+# check if color circle is yellow
+# find FY and Quarter row, create if doesn't exist
+# add row to right spot within quarter
+# change circle color to green
 
-# sort additions by 'Show Live' date
-
-# on click transfer of new row/information of a show,
-# check if checbox is clicked (means show=requested)
 
 if __name__ == '__main__':
     my_sheet = create_sheet('ETS Tradeshow Map Example')
