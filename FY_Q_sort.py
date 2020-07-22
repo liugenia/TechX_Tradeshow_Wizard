@@ -55,11 +55,11 @@ if __name__ == '__main__':
         print(test_date)
         # first test - calculate quarter using beginning of FY20. Problem: FY21 Q3 has an extra week, which messes it up
         result = calc_fy_q(test_date)
-        print('test1 1:\n\t', result)
+        print('test 1:\n\t', result)
         print(f'\tFY{result[0]} Q{result[1]}')
         # second test - calculate quarter from a hardcoded list of quarters with start/end dates
         result = calc_fy_q_hardcoded(test_date)
-        print('test1 1:\n\t', result)
+        print('test 2:\n\t', result)
         print(f'\tFY{result[0]} Q{result[1]}\n')
 
     # just print all the years and quarters
