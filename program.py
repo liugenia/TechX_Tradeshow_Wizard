@@ -14,9 +14,11 @@ def process_sheet(sheet_id, simulate=False):  # main loop for processing the she
     rows = sheet.rows
     col_ids_names = get_columns_id_and_title(sheet_id)
     print_col_headings(col_ids_names)
-    for i, row in enumerate(rows):
+    for row in rows:
         if check_row(row):
             print_row(row)
+            send_row(row)
+
             new_row = update_row_status(row, color='Green')
             if new_row:  # checks that the new row was updated successfully
                 rows_to_update.append(new_row)
@@ -36,13 +38,13 @@ def get_columns_id_and_title(sheet_id):  # returns a list of (id, title) tuples 
     return col_ids_names
 
 
-def check_row(row, index=0, val_to_test='Yellow'):  # checks if the given cell in the given row is the given value
-    return row.cells[index].value == val_to_test
-
-
 def print_col_headings(cols):  # prints the column name and id for the 2 - 7th column
     print(*(str(col[1]).ljust(24) for col in cols[1:6]), 'Start FY/Quarter')
     print(*(str(col[0]).ljust(24) for col in cols[1:6]), end='\n\n')
+
+
+def check_row(row, index=0, val_to_test='Yellow'):  # checks if the given cell in the given row is the given value
+    return row.cells[index].value == val_to_test
 
 
 def print_row(row):  # prints the 2 - 7th column in the passed-in row, + FY/Quarter with some fancy formatting
@@ -50,6 +52,10 @@ def print_row(row):  # prints the 2 - 7th column in the passed-in row, + FY/Quar
           sep=' ', end=' ')
     fy, q = calc_fy_q_hardcoded(row.cells[3].value)
     print(f'FY{fy} Q{q}')
+
+
+def send_row(row):
+    pass
 
 
 def update_row_status(row, color='Green'):
