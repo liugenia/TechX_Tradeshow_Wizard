@@ -82,5 +82,4 @@ def update_row_status(row, color='Green'):
 
 
 if __name__ == '__main__':
-    # my_sheet = create_sheet('ETS Tradeshow Map Example')
     process_sheet(REQUEST_SHEET_ID, simulate=True)
