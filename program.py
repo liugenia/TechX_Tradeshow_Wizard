@@ -44,18 +44,21 @@ def create_sheet(name):
     return response.result.id
 
 
-def get_column_ids(sheet_id):
+def get_column_ids_and_names(sheet_id):
     columns = smart.Sheets.get_columns(
         sheet_id,
         include_all=True).data
 
-    col_ids_names = [(column.id, column.name) for column in columns]
+    col_ids_names = [(column.id, column.title) for column in columns]
     return col_ids_names
 
 
-def get_sheet(sheet_id):
+def get_and_print_sheet(sheet_id):
     sheet = smart.Sheets.get_sheet(sheet_id)
     rows = sheet.rows
+    col_ids_names = get_column_ids_and_names(sheet_id)
+    print(*(str(col[1]).ljust(22) for col in col_ids_names[1:5]), 'Start FY/Quarter')
+    print(*(str(col[0]).ljust(22) for col in col_ids_names[1:5]), end='\n\n')
     for row in rows:
         if row.cells[0].value == 'Yellow':
             print(*(str(cell.value).ljust(22) for cell in row.cells[1:5]), sep=' ', end=' ')
@@ -79,4 +82,4 @@ def get_sheet(sheet_id):
 
 if __name__ == '__main__':
     # my_sheet = create_sheet('ETS Tradeshow Map Example')
-    get_sheet(REQUEST_SHEET_ID)
+    get_and_print_sheet(REQUEST_SHEET_ID)
