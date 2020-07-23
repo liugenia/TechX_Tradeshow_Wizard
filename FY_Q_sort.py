@@ -21,7 +21,7 @@ YEARS_AND_QUARTERS = {
 
 
 def calc_fy_q(input_date):
-    input_date = datetime.strptime(input_date, '%m/%d/%y')
+    input_date = datetime.strptime(input_date, '%Y-%m-%d')
     input_date = date(input_date.year, input_date.month, input_date.day)
     delta = (input_date-FY20_Q1_START).days
     fy = delta // FISCAL_YEAR
@@ -30,7 +30,7 @@ def calc_fy_q(input_date):
 
 
 def calc_fy_q_hardcoded(input_date):
-    input_date = datetime.strptime(input_date, '%m/%d/%y').date()
+    input_date = datetime.strptime(input_date, '%Y-%m-%d').date()
     for year, quarters in YEARS_AND_QUARTERS.items():
         for quarter, time_range in quarters.items():
             if time_range[0] <= input_date <= time_range[1]:
@@ -49,7 +49,7 @@ def print_quarters():
 
 
 if __name__ == '__main__':
-    test_dates = ['04/20/17', '01/01/20', '07/22/20', '07/27/20', '07/31/21', '10/08/21']
+    test_dates = ['2017-04-20', '2020-01-01', '2020-07-22', '2020-07-27', '2021-07-31', '2020-10-08']
 
     for test_date in test_dates:
         print(test_date)
