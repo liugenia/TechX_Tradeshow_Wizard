@@ -1,27 +1,35 @@
 import smartsheet
 
-smart = smartsheet.Smartsheet()  # use 'SMARTSHEET_ACCESS_TOKEN' env variable
+#https://smartsheet-platform.github.io/api-docs  SMARTSHEET API
+
+smart = smartsheet.Smartsheet()  # uses 'SMARTSHEET_ACCESS_TOKEN' env variable
 smart.errors_as_exceptions(True)
 
+REQUEST_SHEET_ID=5484659632039812
+MAP_SHEET_ID=8844668382275460
 
-# creates the smartsheet for ETS Tradeshow Map in the TechX workspace
+# makes a new requests sheet, add to Tradeshow Map trigger=RYG trinary system
 def create_sheet(name):
     sheet_spec = smartsheet.models.Sheet({
         'name': name,
-        'columns': [{
+        'columns': [
+            {
+            'title': 'Add to map?',
+            'type': 'PICKLIST', #search 'column type' to see which type to use
+            'symbol': 'RYG' # red = not added, yellow = add, green = already added
+            }, {
             'title': 'Show Name',
-            'primary': True,
             'type': 'TEXT_NUMBER',
+            'primary': True,
             }, {
             'title': 'Setup Start Date',
-            'type': 'CHECKBOX',
-            'symbol': 'STAR'
+            'type': 'DATE'
             }, {
             'title': 'Show Live Date',
-            'type': 'TEXT_NUMBER'
+            'type': 'DATE'
             }, {
             'title': 'Tear Down Date',
-            'type': 'TEXT_NUMBER'
+            'type': 'DATE'
             }, {
             'title': 'Program Manager',
             'type': 'TEXT_NUMBER'
@@ -34,25 +42,37 @@ def create_sheet(name):
             }, {
             'title': 'Booth Size',
             'type': 'TEXT_NUMBER'
+            }, {
+            'title': 'Booth Number',
+            'type': 'TEXT_NUMBER'
             }]
         })
     response = smart.Home.create_sheet(sheet_spec)
     return response.result.id
 
+#handles the addition of a request row to the actual tradeshow map
 
-# make a new requests sheet with added color dot column
-# make a new map sheet for testing with original data, create fake data in requests and test adding it to the sheet
-# pull in data from test requests sheet, print out new (yellow) rows with calculated FY/Q
+def addRequest(sheet):
+#1) call toAdd() to check if column in the sheet is "Yellow"
+#2) if toAdd()==True, then copy that row to Tradeshow Map SS
+#3) switch the value of 'Add to map' to "Green"
+#4) call sortEntry() to place row in the right FY and Q, sorty by 'Show Live Date'
+    pass
 
-# red = don't add, not added, yellow = add, green = don't add, already added
+def toAdd(row, to_add='Yellow'):
+    #checks the 'Add to map' column status (RYG), if "Yellow" the row needs to be added
+    return row.cells[0].value==to_add
 
-# implement fiscal year separations per Cisco calendar
-# on run transfer of new row/information of a show,
-# check if color circle is yellow
-# find FY and Quarter row, create if doesn't exist
-# add row to right spot within quarter
-# change circle color to green
+def switchAdd(row):
+    #updates the 'Add to map' column value to "Green" to indicate row has been added to TSMap
+    pass
 
+def sortEntry(row):
+#puts row into right place for Tradeshow Map SS
+#1) calculate FY and Q of 'Show Live Date'
+#2) if no header for FY and/or Q, append a title row
+#3) for range of rows in given FY and Q -- sort by the Show Live date (index=3)
+    pass
 
 if __name__ == '__main__':
-    my_sheet = create_sheet('ETS Tradeshow Map Example')
+    # my_sheet = create_sheet('[TEST] ETS Service Request Form') --creates a new sheet, DONE
