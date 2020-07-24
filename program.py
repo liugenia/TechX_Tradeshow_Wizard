@@ -1,5 +1,5 @@
 import smartsheet
-from FY_Q_sort import calc_fy_q_hardcoded
+# from FY_Q_sort import calc_fy_q_hardcoded
 
 #https://smartsheet-platform.github.io/api-docs  SMARTSHEET API
 
@@ -15,7 +15,7 @@ def create_sheet(name):
         'name': name,
         'columns': [
             {
-            'title': 'Add to map?',
+            'title': 'ETS Status',
             'type': 'PICKLIST', #search 'column type' to see which type to use
             'symbol': 'RYG' # red = not added, yellow = add, green = already added
             }, {
@@ -51,14 +51,15 @@ def create_sheet(name):
     response = smart.Home.create_sheet(sheet_spec)
     return response.result.id
 
-#handles the addition of a request row to the actual tradeshow map
-def addRequest():
-#1) call toAdd() to check if cell value of 'Add to map' is "Yellow"
-#2) if toAdd()==True, then copy that row to Tradeshow Map SS
+#given ETS Service Request sheet, adds the relevant info to Tradeshow Map on click
+def transferRequest():
+#1a) call toAdd() to check if cell value of 'Add to map' is "Yellow"
+#1b) call colToCopy() to ensure only matching columns are copied
+#2) if toAdd() and colToCopy(), then copy that row to Tradeshow Map SS
 #3) call switchAdd() to switch the value of 'Add to map' to "Green"
 #4) call sortEntry() to place row in the right FY and Q, sort by 'Show Live Date'
-    sheet=smart.Sheets.get_sheet(REQUEST_SHEET_ID) #get sheet
-    for row in sheet.rows: #iterate through each row of the sheet
+    sheet=smart.Sheets.get_sheet(REQUEST_SHEET_ID)
+    for row in sheet.rows:
         if toAdd(row):
             smart.Sheets.copy_rows(
                 REQUEST_SHEET_ID,
@@ -69,16 +70,27 @@ def addRequest():
                     })
                 })
             )
-        
-#checks the 'Add to map' column status (RYG), if "Yellow" the row needs to be added
-def toAdd(row, to_add='Yellow'):
-    return row.cells[0].value==to_add
+            switchAdd(sheet.id, row)
+        # sortEntry(MAP_SHEET_ID)
 
-#updates the 'Add to map' column value to "Green" to indicate row has been added to TSMap
-def switchAdd(row):
+#checks the 'Add to map' column status (RYG), if "Yellow" the row needs to be added
+def toAdd(row):
+    return row.cells[0].value=='Yellow'
+
+#updates the 'Add to map' column value to "Green" to indicate row has been added
+def switchAdd(sheet_id, row):
+    new_row = smartsheet.models.Row()
+    new_row.id, new_row.cells = row.id, row.cells
+    new_row.cells[0].value='Green'
+    smart.Sheets.update_rows(sheet_id,[new_row])
+
+#compares column names for Request and Map SS, data copied for cols existing in both sheets
+def colToCopy(sheet):
+    # req_cols=smart.Sheets.get_sheet(REQUEST_SHEET_ID).columns
+    # map_cols=smart.Sheets.get_sheet(MAP_SHEET_ID).columns
     pass
 
-def sortEntry(row):
+def sortEntry(sheet):
 #puts row into right place for Tradeshow Map SS
 #1) calculate FY and Q of 'Show Live Date'
 #2) if no header for FY and/or Q, append a title row
@@ -87,4 +99,4 @@ def sortEntry(row):
 
 if __name__ == '__main__':
     # my_sheet = create_sheet('[TEST] ETS Service Request Form')
-    addRequest()
+    transferRequest()
