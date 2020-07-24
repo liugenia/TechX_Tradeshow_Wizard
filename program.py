@@ -1,12 +1,10 @@
 import smartsheet
 # from FY_Q_sort import calc_fy_q_hardcoded
 
-#https://smartsheet-platform.github.io/api-docs  SMARTSHEET API
-
 smart = smartsheet.Smartsheet()  # uses 'SMARTSHEET_ACCESS_TOKEN' env variable
 smart.errors_as_exceptions(True)
 
-REQUEST_SHEET_ID=535070600652676
+REQUEST_SHEET_ID=4026093033285508
 MAP_SHEET_ID=8844668382275460
 
 # makes a new requests sheet, add to Tradeshow Map trigger=RYG trinary system
@@ -19,29 +17,32 @@ def create_sheet(name):
             'type': 'PICKLIST', #search 'column type' to see which type to use
             'symbol': 'RYG' # red = not added, yellow = add, green = already added
             }, {
-            'title': 'Show Name',
+            'title': 'ETS Service Request?',
+            'type': 'CHECKBOX',
+            },{
+            'title': 'Event Name',
             'type': 'TEXT_NUMBER',
             'primary': True,
             }, {
-            'title': 'Setup Start',
+            'title': 'Move In Date',
             'type': 'DATE'
             }, {
-            'title': 'Show Live',
+            'title': 'Event Start Date',
             'type': 'DATE'
             }, {
-            'title': 'Teardown',
+            'title': 'Event End Date',
             'type': 'DATE'
             }, {
-            'title': 'Program Manager',
+            'title': 'Cisco Program Manager (PM)',
             'type': 'TEXT_NUMBER'
             }, {
-            'title': 'Location',
+            'title': 'Event Location (City, State/Country)',
             'type': 'TEXT_NUMBER'
             }, {
-            'title': 'Venue Name',
+            'title': 'Event Venue',
             'type': 'TEXT_NUMBER'
             }, {
-            'title': 'Booth Size',
+            'title': "Booth Size (X' x Y')",
             'type': 'TEXT_NUMBER'
             }, {
             'title': 'Booth Number',
@@ -53,11 +54,11 @@ def create_sheet(name):
 
 #given ETS Service Request sheet, adds the relevant info to Tradeshow Map on click
 def transferRequest():
-#1a) call toAdd() to check if cell value of 'Add to map' is "Yellow"
-#1b) call colToCopy() to ensure only matching columns are copied
-#2) if toAdd() and colToCopy(), then copy that row to Tradeshow Map SS
-#3) call switchAdd() to switch the value of 'Add to map' to "Green"
-#4) call sortEntry() to place row in the right FY and Q, sort by 'Show Live Date'
+#1) call toAdd() to check if cell value of 'Add to map' is "Yellow"
+#2) if toAdd(), copy that row to Tradeshow Map SS
+#3) call markAdded() to switch the value of 'Add to map' to "Green"
+#4) call delCols() to delete any extra columns imported
+#5) call sortEntry() to place row in the right FY and Q, criteria: Event Start Date (Show Live)
     sheet=smart.Sheets.get_sheet(REQUEST_SHEET_ID)
     for row in sheet.rows:
         if toAdd(row):
@@ -70,31 +71,34 @@ def transferRequest():
                     })
                 })
             )
-            switchAdd(sheet.id, row)
+            markAdded(sheet.id, row)
+        delCols()
         # sortEntry(MAP_SHEET_ID)
 
-#checks the 'Add to map' column status (RYG), if "Yellow" the row needs to be added
+#checks if the 'Add to map' column value is "Yellow" 
 def toAdd(row):
     return row.cells[0].value=='Yellow'
 
 #updates the 'Add to map' column value to "Green" to indicate row has been added
-def switchAdd(sheet_id, row):
+def markAdded(sheet_id, row):
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, row.cells
     new_row.cells[0].value='Green'
     smart.Sheets.update_rows(sheet_id,[new_row])
 
-#compares column names for Request and Map SS, data copied for cols existing in both sheets
-def colToCopy(sheet):
-    # req_cols=smart.Sheets.get_sheet(REQUEST_SHEET_ID).columns
-    # map_cols=smart.Sheets.get_sheet(MAP_SHEET_ID).columns
-    pass
+#deletes the extra columns that aren't relevant
+def delCols():
+    sheet=smart.Sheets.get_sheet(MAP_SHEET_ID)
+    for col in sheet.columns:
+        if col.index>=13:
+            smart.Sheets.delete_column(sheet.id, col.id)
 
+#sorts the Tradeshow Map SS and puts entry in correct FY and Q
 def sortEntry(sheet):
-#puts row into right place for Tradeshow Map SS
 #1) calculate FY and Q of 'Show Live Date'
-#2) if no header for FY and/or Q, append a title row
-#3) for range of rows in given FY and Q -- sort by the Show Live date (index=3)
+#2) check for FY/Q header row - if no header for FY and/or Q, append a row above
+#3a) find the row value the FY/Q
+#3b) sort the entry within the row range of given FY/Q
     pass
 
 if __name__ == '__main__':
