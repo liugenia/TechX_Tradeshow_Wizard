@@ -12,7 +12,9 @@ MAP_SHEET_ID = 8844668382275460
 def process_sheet(request_sheet_id, map_sheet_id, simulate=False):  # main loop for processing the sheet
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
     column_mapping = column_name_to_id_map(request_sheet_id)
+
     print_col_headings(column_mapping)
+
     for row in rows:
         if check_row(row):
             print_row(row)
@@ -34,7 +36,7 @@ def send_row(sheet_id, row, request_column_mapping):
     fy_q_dict = make_fy_q_dict(sheet_id)
 
     new_row = smartsheet.models.Row()
-    new_row.parent_id = get_quarter_parentid(fy, q, fy_q_dict)
+    new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
     new_row.to_bottom = True
 
     map_column_mapping = column_name_to_id_map(sheet_id)
@@ -49,16 +51,22 @@ def send_row(sheet_id, row, request_column_mapping):
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
+def update_row_status(row, color='Green'):
+    # creates a new row object with the old row's id and cells, updates the first cell to the passed in color
+    allowed_colors = ['Red', 'Yellow', 'Green']
+    new_row = smartsheet.models.Row()
+    new_row.id, new_row.cells = row.id, row.cells
+    try:
+        assert color in allowed_colors
+        new_row.cells[0].value = color
+        return new_row
+    except AssertionError:
+        print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
+    return row
+
+
 def check_row(row, index=0, val_to_test='Yellow'):  # checks if the given cell in the given row is the given value
     return row.cells[index].value == val_to_test
-
-
-def column_name_to_id_map(sheet_id):  # returns a title:id dict of all columns in sheet
-    return {column.title: column.id for column in smart.Sheets.get_columns(sheet_id, include_all=True).data}
-
-
-def get_cell_by_column_name(row, column_name, col_map):
-    return row.get_column(col_map[column_name])  # {NAME: ID}
 
 
 def print_col_headings(cols):  # prints the column name and id for the 2 - 7th column
@@ -74,6 +82,14 @@ def print_row(row):  # prints the 2 - 7th column in the passed-in row, + FY/Quar
 
 def column_format(item, just=23):
     return (str(item)[:just - 2] + (str(item)[just - 2:] and '..')).ljust(just)
+
+
+def column_name_to_id_map(sheet_id):  # returns a title:id dict of all columns in sheet
+    return {column.title: column.id for column in smart.Sheets.get_columns(sheet_id, include_all=True).data}
+
+
+def get_cell_by_column_name(row, column_name, col_map):
+    return row.get_column(col_map[column_name])  # {NAME: ID}
 
 
 def reverse_dict_search(search_dict, search_value):
@@ -108,22 +124,8 @@ def find_quarter_rows(sheet_id, year_row):
     return q_rows
 
 
-def get_quarter_parentid(fy, q, fy_q_dict):
+def get_quarter_parent_id(fy, q, fy_q_dict):
     return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
-
-
-def update_row_status(row, color='Green'):
-    # creates a new row object with the old row's id and cells, updates the first cell to the passed in color
-    allowed_colors = ['Red', 'Yellow', 'Green']
-    new_row = smartsheet.models.Row()
-    new_row.id, new_row.cells = row.id, row.cells
-    try:
-        assert color in allowed_colors
-        new_row.cells[0].value = color
-        return new_row
-    except AssertionError:
-        print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
-    return row
 
 
 if __name__ == '__main__':
