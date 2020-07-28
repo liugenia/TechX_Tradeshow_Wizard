@@ -1,9 +1,5 @@
 from datetime import date, datetime
 
-QUARTER = 13 * 7
-FISCAL_YEAR = QUARTER * 4
-FY20_Q1_START = date(2019, 7, 28)
-
 YEARS_AND_QUARTERS = {
     20: {
         1: (date(2019, 7, 28), date(2019, 10, 26)),
@@ -19,14 +15,6 @@ YEARS_AND_QUARTERS = {
         }
     }
 
-
-def calc_fy_q(input_date):
-    input_date = datetime.strptime(input_date, '%Y-%m-%d')
-    input_date = date(input_date.year, input_date.month, input_date.day)
-    delta = (input_date-FY20_Q1_START).days
-    fy = delta // FISCAL_YEAR
-    q = delta % FISCAL_YEAR // QUARTER
-    return 20 + fy, q + 1
 
 
 def calc_fy_q_hardcoded(input_date):
@@ -48,15 +36,14 @@ def print_quarters():
             print(f'\t\tduration: {(time_range[1]-time_range[0]).days}')
 
 
+
+
+
 if __name__ == '__main__':
     test_dates = ['2017-04-20', '2020-01-01', '2020-07-22', '2020-07-27', '2021-07-31', '2020-10-08']
-
+    print('test:')
     for test_date in test_dates:
         print(test_date)
-        # first test - calculate quarter using beginning of FY20. Problem: FY21 Q3 has an extra week, which messes it up
-        result = calc_fy_q(test_date)
-        print('test 1:\n\t', result)
-        print(f'\tFY{result[0]} Q{result[1]}')
         # second test - calculate quarter from a hardcoded list of quarters with start/end dates
         result = calc_fy_q_hardcoded(test_date)
         print('test 2:\n\t', result)
