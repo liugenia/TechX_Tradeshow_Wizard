@@ -16,7 +16,6 @@ YEARS_AND_QUARTERS = {
     }
 
 
-
 def calc_fy_q_hardcoded(input_date):
     input_date = datetime.strptime(input_date, '%Y-%m-%d').date()
     for year, quarters in YEARS_AND_QUARTERS.items():
@@ -34,9 +33,6 @@ def print_quarters():
             print(f'\tQ{quarter}:')
             print(f'\t\ttime range: {time_range[0]} – {time_range[1]}')
             print(f'\t\tduration: {(time_range[1]-time_range[0]).days}')
-
-
-
 
 
 if __name__ == '__main__':
