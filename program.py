@@ -24,6 +24,7 @@ def process_sheet(request_sheet_id, map_sheet_id, simulate=False):  # main loop 
                          request_column_mapping=column_mapping)
                 smart.Sheets.update_rows(request_sheet_id,
                                          update_row_status(row=row,
+                                                           column_mapping=column_mapping,
                                                            color='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
@@ -51,14 +52,14 @@ def send_row(sheet_id, row, request_column_mapping):
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
-def update_row_status(row, color='Green'):
+def update_row_status(row, column_mapping, column_name='ETS Status', color='Green'):
     # creates a new row object with the old row's id and cells, updates the first cell to the passed in color
     allowed_colors = ['Red', 'Yellow', 'Green']
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, row.cells
     try:
         assert color in allowed_colors
-        new_row.cells[0].value = color
+        get_cell_by_column_name(row, column_name, column_mapping).value = color
         return new_row
     except AssertionError:
         print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
