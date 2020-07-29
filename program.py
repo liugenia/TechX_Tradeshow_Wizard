@@ -16,7 +16,7 @@ def process_sheet(request_sheet_id, map_sheet_id, simulate=False):  # main loop 
     print_col_headings(column_mapping)
 
     for row in rows:
-        if check_row(row):
+        if check_row(row, column_mapping):
             print_row(row)
             if not simulate:
                 send_row(sheet_id=map_sheet_id,
@@ -65,8 +65,8 @@ def update_row_status(row, color='Green'):
     return row
 
 
-def check_row(row, index=0, val_to_test='Yellow'):  # checks if the given cell in the given row is the given value
-    return row.cells[index].value == val_to_test
+def check_row(row, column_mapping, column_name='ETS Status', val_to_test='Yellow'):
+    return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
 def print_col_headings(cols):  # prints the column name and id for the 2 - 7th column
