@@ -136,8 +136,8 @@ def check_row(row: smartsheet.models.Row,
 
 
 def print_col_headings(cols: dict) -> None:  # prints the column name and id for all columns, plus FY/Quarter
-    print(*(column_format(col_title) for col_title in cols.keys()), 'Start FY/Quarter')
-    print(*(str(col_id).ljust(23) for col_id in cols.values()), end='\n\n')
+    print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
+    print(*(str(col_id).ljust(16) for col_id in cols.values()), end='\n\n')
 
 
 def print_row(row: smartsheet.models.Row,
@@ -149,7 +149,7 @@ def print_row(row: smartsheet.models.Row,
     print(f'FY{fy} Q{q}')
 
 
-def column_format(item: str, just: int = 23) -> str:
+def column_format(item: str, just: int = 16) -> str:
     return (str(item)[:just - 2] + (str(item)[just - 2:] and '..')).ljust(just)
 
 
