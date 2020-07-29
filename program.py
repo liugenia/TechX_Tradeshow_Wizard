@@ -95,7 +95,7 @@ def send_row(sheet_id: int,
     update_row_status(row=new_row,
                       column_mapping=map_column_mapping,
                       value='Green')
-    new_row.append(smartsheet
+    new_row.cells.append(smartsheet
                    .models.Cell(dict(value=True,
                                      column_id=map_column_mapping['ETS Service Request?'])))
     smart.Sheets.add_rows(sheet_id, new_row)
