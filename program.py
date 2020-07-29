@@ -9,7 +9,9 @@ REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
 
 
-def process_sheet(request_sheet_id, map_sheet_id, simulate=False):
+def process_sheet(request_sheet_id: int,
+                  map_sheet_id: int,
+                  simulate: bool = False) -> None:
     """Main loop for processing the sheet
 
     takes the sheet ids for the request sheet to pull rows from, and
@@ -48,7 +50,9 @@ def process_sheet(request_sheet_id, map_sheet_id, simulate=False):
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
 
 
-def send_row(sheet_id, row, request_column_mapping):
+def send_row(sheet_id: int,
+             row: smartsheet.models.Row,
+             request_column_mapping: dict) -> None:
     """Main function for sending each row
 
     Takes the map sheet id, the row to be sent, and the request sheet
@@ -92,7 +96,10 @@ def send_row(sheet_id, row, request_column_mapping):
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
-def update_row_status(row, column_mapping, column_name='ETS Status', color='Green'):
+def update_row_status(row: smartsheet.models.Row,
+                      column_mapping: dict,
+                      column_name: str = 'ETS Status',
+                      color: str = 'Green') -> smartsheet.models.Row:
     """ Updates a row's ETS Status Column to Green
 
     Takes a row and a column mapping, and optionally the column name
@@ -121,40 +128,51 @@ def update_row_status(row, column_mapping, column_name='ETS Status', color='Gree
     return row
 
 
-def check_row(row, column_mapping, column_name='ETS Status', val_to_test='Yellow'):
+def check_row(row: smartsheet.models.Row,
+              column_mapping: dict,
+              column_name: str = 'ETS Status',
+              val_to_test: str = 'Yellow') -> bool:
     return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
-def print_col_headings(cols):  # prints the column name and id for all columns, plus FY/Quarter
+def print_col_headings(cols: dict) -> None:  # prints the column name and id for all columns, plus FY/Quarter
     print(*(column_format(col_title) for col_title in cols.keys()), 'Start FY/Quarter')
     print(*(str(col_id).ljust(23) for col_id in cols.values()), end='\n\n')
 
 
-def print_row(row, column_mapping, column_name='Event Start Date'):  # format, print the columns in the row + FY/Quarter
+def print_row(row: smartsheet.models.Row,
+              column_mapping: dict,
+              column_name: str = 'Event Start Date') -> None:
+    # format, print the columns in the row + FY/Quarter
     print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping))
     print(f'FY{fy} Q{q}')
 
 
-def column_format(item, just=23):
+def column_format(item: str, just: int = 23) -> str:
     return (str(item)[:just - 2] + (str(item)[just - 2:] and '..')).ljust(just)
 
 
-def column_name_to_id_map(sheet_id):  # returns a title:id dict of all columns in sheet
+def column_name_to_id_map(sheet_id: int) -> dict:
+    # returns a title:id dict of all columns in sheet
     return {column.title: column.id for column in smart.Sheets.get_columns(sheet_id, include_all=True).data}
 
 
-def get_cell_by_column_name(row, column_name, col_map):
+def get_cell_by_column_name(row: smartsheet.models.Row,
+                            column_name: str,
+                            col_map: dict) -> smartsheet.models.Cell:
     return row.get_column(col_map[column_name])  # {NAME: ID}
 
 
-def reverse_dict_search(search_dict, search_value):
+def reverse_dict_search(search_dict: dict, search_value: str) -> str:
     for key, val in search_dict.items():
         if val == search_value:
             return key
 
 
-def make_fy_q_dict(sheet_id, column_mapping, column_name='Event Start Date'):
+def make_fy_q_dict(sheet_id: int,
+                   column_mapping: dict,
+                   column_name: str = 'Event Start Date') -> dict:
     fy_q_dict = {str(get_cell_by_column_name(fy,
                                              column_name,
                                              column_mapping).value): [fy, {}] for fy in find_fy_rows(sheet_id)}
@@ -166,16 +184,16 @@ def make_fy_q_dict(sheet_id, column_mapping, column_name='Event Start Date'):
     return fy_q_dict
 
 
-def find_fy_rows(sheet_id):
+def find_fy_rows(sheet_id: int) -> list:
     fy_rows = []
     rows = smart.Sheets.get_sheet(sheet_id).rows
     for row in rows:
-        if not row.to_dict().get('parentId', False):  # checks if row has a porent
+        if not row.to_dict().get('parentId', False):  # checks if row has a parent
             fy_rows.append(row)
     return fy_rows
 
 
-def find_quarter_rows(sheet_id, year_row):
+def find_quarter_rows(sheet_id: int, year_row: smartsheet.models.Row) -> list:
     q_rows = []
     rows = smart.Sheets.get_sheet(sheet_id).rows
     for row in rows:
@@ -184,7 +202,7 @@ def find_quarter_rows(sheet_id, year_row):
     return q_rows
 
 
-def get_quarter_parent_id(fy, q, fy_q_dict):
+def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
     return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
 
 
