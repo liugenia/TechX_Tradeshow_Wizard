@@ -34,13 +34,12 @@ def send_row(sheet_id, row, request_column_mapping):
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row=row,
                                                         column_name='Event Start Date',
                                                         col_map=request_column_mapping).value)
-    fy_q_dict = make_fy_q_dict(sheet_id)
+    map_column_mapping = column_name_to_id_map(sheet_id)
+    fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
 
     new_row = smartsheet.models.Row()
     new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
     new_row.to_bottom = True
-
-    map_column_mapping = column_name_to_id_map(sheet_id)
 
     for cell in row.cells:
         if reverse_dict_search(request_column_mapping, cell.column_id) in map_column_mapping.keys():
@@ -99,11 +98,15 @@ def reverse_dict_search(search_dict, search_value):
             return key
 
 
-def make_fy_q_dict(sheet_id):
-    fy_q_dict = {str(fy.cells[0].value): [fy, {}] for fy in find_fy_rows(sheet_id)}
+def make_fy_q_dict(sheet_id, column_mapping, column_name='Event Start Date'):
+    fy_q_dict = {str(get_cell_by_column_name(fy,
+                                             column_name,
+                                             column_mapping).value): [fy, {}] for fy in find_fy_rows(sheet_id)}
     for year, (year_row, _) in fy_q_dict.items():
         quarters = find_quarter_rows(sheet_id, year_row)
-        fy_q_dict[year][1] = {quarter.cells[0].value: quarter for quarter in quarters}
+        fy_q_dict[year][1] = {get_cell_by_column_name(quarter,
+                                                      column_name,
+                                                      column_mapping).value: quarter for quarter in quarters}
     return fy_q_dict
 
 
