@@ -92,7 +92,10 @@ def send_row(sheet_id: int,
             new_cell.value = cell.value
             new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
             new_row.cells.append(new_cell)
-
+    update_row_status(row=new_row,
+                      column_mapping=map_column_mapping,
+                      column_name='ETS Status',
+                      color='Green')
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
