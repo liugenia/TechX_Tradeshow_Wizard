@@ -70,12 +70,12 @@ def check_row(row, column_mapping, column_name='ETS Status', val_to_test='Yellow
     return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
-def print_col_headings(cols):  # prints the column name and id for the 2 - 7th column
+def print_col_headings(cols):  # prints the column name and id for all columns, plus FY/Quarter
     print(*(column_format(col_title) for col_title in cols.keys()), 'Start FY/Quarter')
     print(*(str(col_id).ljust(23) for col_id in cols.values()), end='\n\n')
 
 
-def print_row(row, column_mapping, column_name='Event Start Date'):  # prints the 2 - 7th column in the passed-in row, + FY/Quarter with some fancy formatting
+def print_row(row, column_mapping, column_name='Event Start Date'):  # format, print the columns in the row + FY/Quarter
     print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping))
     print(f'FY{fy} Q{q}')
