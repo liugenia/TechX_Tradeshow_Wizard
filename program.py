@@ -118,10 +118,10 @@ def update_row_status(row: smartsheet.models.Row,
 
     allowed_colors = ['Red', 'Yellow', 'Green']
     new_row = smartsheet.models.Row()
-    new_row.id, new_row.cells = row.id, row.cells
+    new_row.id, new_row.cells = row.id, [cell for cell in row.cells if cell.value]
     try:
         assert color in allowed_colors
-        get_cell_by_column_name(row, column_name, column_mapping).value = color
+        get_cell_by_column_name(new_row, column_name, column_mapping).value = color
         return new_row
     except AssertionError:
         print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
@@ -145,7 +145,7 @@ def print_row(row: smartsheet.models.Row,
               column_name: str = 'Event Start Date') -> None:
     # format, print the columns in the row + FY/Quarter
     print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
-    fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping))
+    fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping).value)
     print(f'FY{fy} Q{q}')
 
 
@@ -172,7 +172,7 @@ def reverse_dict_search(search_dict: dict, search_value: str) -> str:
 
 def make_fy_q_dict(sheet_id: int,
                    column_mapping: dict,
-                   column_name: str = 'Event Start Date') -> dict:
+                   column_name: str = 'Event Name') -> dict:
     fy_q_dict = {str(get_cell_by_column_name(fy,
                                              column_name,
                                              column_mapping).value): [fy, {}] for fy in find_fy_rows(sheet_id)}
