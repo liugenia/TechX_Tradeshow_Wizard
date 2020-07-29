@@ -45,7 +45,7 @@ def process_sheet(request_sheet_id: int,
                 smart.Sheets.update_rows(request_sheet_id,
                                          update_row_status(row=row,
                                                            column_mapping=column_mapping,
-                                                           color='Green'))
+                                                           value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
 
@@ -92,40 +92,36 @@ def send_row(sheet_id: int,
             new_cell.value = cell.value
             new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
             new_row.cells.append(new_cell)
-
+    update_row_status(row=new_row,
+                      column_mapping=map_column_mapping,
+                      value='Green')
+    update_row_status(row=new_row,
+                      column_mapping=map_column_mapping,
+                      column_name='ETS Service Request?',
+                      value=True)
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
 def update_row_status(row: smartsheet.models.Row,
                       column_mapping: dict,
                       column_name: str = 'ETS Status',
-                      color: str = 'Green') -> smartsheet.models.Row:
+                      value: str = 'Green') -> smartsheet.models.Row:
     """ Updates a row's ETS Status Column to Green
 
     Takes a row and a column mapping, and optionally the column name
     and value to change it to.
 
-    Creates a new row object with the old row's id and cells, then
-    changes the cell with the given column name to be the specified
+    Creates a new row object with the old row's id and  non-empty cells,
+    then changes the cell with the given column name to the specified
     value
 
-    Attempting to change the color to anything but one of the
-    allowed_colors is an AssertionError and the original row is
-    returned unchanged
-
-    Otherwise, returns the new row object with the updated color column
+    Returns the new row object with the updated color column
     """
 
-    allowed_colors = ['Red', 'Yellow', 'Green']
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, [cell for cell in row.cells if cell.value]
-    try:
-        assert color in allowed_colors
-        get_cell_by_column_name(new_row, column_name, column_mapping).value = color
-        return new_row
-    except AssertionError:
-        print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
-    return row
+    get_cell_by_column_name(new_row, column_name, column_mapping).value = value
+    return new_row
 
 
 def check_row(row: smartsheet.models.Row,
