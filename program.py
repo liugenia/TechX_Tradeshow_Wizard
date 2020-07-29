@@ -9,7 +9,25 @@ REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
 
 
-def process_sheet(request_sheet_id, map_sheet_id, simulate=False):  # main loop for processing the sheet
+def process_sheet(request_sheet_id, map_sheet_id, simulate=False):
+    """Main loop for processing the sheet
+
+    takes the sheet ids for the request sheet to pull rows from, and
+    the map sheet to send rows to. An optional simulate option does not
+    alter any sheets, but only shows the rows that would be copied.
+
+    Gets rows from the request sheet, and builds {name: id} column map
+
+    Prints out the column names and ids
+
+    For each row in the request sheet, the ETS status column is checked
+    if it is Yellow, the row is printed and if simulation is false, the
+    row is sent to the map sheet and then the ETS Status column is
+    changed to green.
+
+    Does not return anything.
+    """
+
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
     column_mapping = column_name_to_id_map(request_sheet_id)
 
@@ -31,6 +49,29 @@ def process_sheet(request_sheet_id, map_sheet_id, simulate=False):  # main loop 
 
 
 def send_row(sheet_id, row, request_column_mapping):
+    """Main function for sending each row
+
+    Takes the map sheet id, the row to be sent, and the request sheet
+    {name: id} column map.
+
+    Calculated the FY/Quarter number, thee map sheet {name: id}
+    column map, and the dictionary of fy and quarter rows
+
+    Creates an empty row, and sets the parent_id to the id of the
+    quarter to which it belongs, and sets it to be added to the
+    bottom of that row's children
+
+    Iterates though all the cells, and if the name of that cell's
+    column id is also in the map sheet, creates a new empty cell,
+    copies over the value of the cell, sets the column id to be the
+    column id that has the same name as the old cell's column, and
+    appends that cell to the new row.
+
+    Finally, that row is added to the map sheet
+
+    Does not return anything.
+    """
+
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row=row,
                                                         column_name='Event Start Date',
                                                         col_map=request_column_mapping).value)
@@ -52,7 +93,22 @@ def send_row(sheet_id, row, request_column_mapping):
 
 
 def update_row_status(row, column_mapping, column_name='ETS Status', color='Green'):
-    # creates a new row object with the old row's id and cells, updates the first cell to the passed in color
+    """ Updates a row's ETS Status Column to Green
+
+    Takes a row and a column mapping, and optionally the column name
+    and value to change it to.
+
+    Creates a new row object with the old row's id and cells, then
+    changes the cell with the given column name to be the specified
+    value
+
+    Attempting to change the color to anything but one of the
+    allowed_colors is an AssertionError and the original row is
+    returned unchanged
+
+    Otherwise, returns the new row object with the updated color column
+    """
+
     allowed_colors = ['Red', 'Yellow', 'Green']
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, row.cells
