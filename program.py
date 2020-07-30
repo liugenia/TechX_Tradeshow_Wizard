@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 
 import smartsheet
@@ -13,7 +14,8 @@ MAP_SHEET_ID = 8844668382275460
 
 def process_sheet(request_sheet_id: int,
                   map_sheet_id: int,
-                  simulate: bool = False) -> None:
+                  simulate: bool = False,
+                  verbose: bool = False) -> None:
     """Main loop for processing the sheet
     takes the sheet ids for the request sheet to pull rows from, and
     the map sheet to send rows to. An optional simulate option does not
@@ -30,7 +32,7 @@ def process_sheet(request_sheet_id: int,
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
     column_mapping = column_name_to_id_map(request_sheet_id)
 
-    print_col_headings(column_mapping)
+    print_col_headings(column_mapping, verbose)
 
     for row in rows:
         if check_row(row, column_mapping):
@@ -132,9 +134,11 @@ def check_row(row: smartsheet.models.Row,
     return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
-def print_col_headings(cols: dict) -> None:  # prints the column name and id for all columns, plus FY/Quarter
+def print_col_headings(cols: dict, verbose: bool) -> None:  # prints column name and id for all columns, plus FY/Quarter
     print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
-    print(*(str(col_id).ljust(16) for col_id in cols.values()), end='\n\n')
+    if verbose:
+        print(*(str(col_id).ljust(16) for col_id in cols.values()))
+    print()
 
 
 def print_row(row: smartsheet.models.Row,
@@ -230,5 +234,20 @@ def sort_quarter_rows(sheet_id: int,
             return row.id
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description='Copy rows selected by Yellow ' +
+                                                 'value in ETS Status column in ' +
+                                                 'Request sheet to Map sheet',
+                                     epilog=f'Written by Eugenia Liu and Daniel Karpelevitch')
+    parser.add_argument('-V', '--version', action='version',
+                        version=f"%(prog)s (beta)")
+    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
+                        help='Enable verbose output')
+    parser.add_argument('-s', '--simulate', action='store_true', dest='simulate',
+                        help="Don't change sheets, just print what rows would be changed")
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=False)
+    args = get_args()
+    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate, verbose=args.verbose)
