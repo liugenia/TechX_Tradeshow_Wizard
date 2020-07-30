@@ -1,5 +1,6 @@
+from datetime import datetime
+
 import smartsheet
-from datetime import date, datetime
 
 from FY_Q_sort import calc_fy_q_hardcoded
 
@@ -41,7 +42,7 @@ def process_sheet(request_sheet_id: int,
                 smart.Sheets.update_rows(request_sheet_id,
                                          update_row_status(row=row,
                                                            column_mapping=column_mapping,
-                                                           color='Green'))
+                                                           value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
 
@@ -73,8 +74,6 @@ def send_row(sheet_id: int,
     fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
 
     new_row = smartsheet.models.Row()
-    new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
-    new_row.to_bottom = True
 
     for cell in row.cells:
         if reverse_dict_search(request_column_mapping, cell.column_id) in map_column_mapping.keys():
@@ -83,10 +82,10 @@ def send_row(sheet_id: int,
             new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
             new_row.cells.append(new_cell)
 
-    sib_id = sort_quarter_rows(
-    sheet_id, new_row.parent_id, new_row, request_column_mapping
-    )
-
+    sib_id = sort_quarter_rows(sheet_id,
+                               get_quarter_parent_id(fy, q, fy_q_dict),
+                               new_row,
+                               map_column_mapping)
     if sib_id:
         new_row.sibling_id = sib_id
         new_row.above = True
@@ -94,35 +93,36 @@ def send_row(sheet_id: int,
         new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
         new_row.to_bottom = True
 
+    update_row_status(row=new_row,
+                      column_mapping=map_column_mapping,
+                      value='Green')
+    new_row.cells.append(smartsheet
+                         .models.Cell(dict(value=True,
+                                           column_id=map_column_mapping['ETS Service Request?'])))
+
     smart.Sheets.add_rows(sheet_id, new_row)
 
 
 def update_row_status(row: smartsheet.models.Row,
                       column_mapping: dict,
                       column_name: str = 'ETS Status',
-                      color: str = 'Green') -> smartsheet.models.Row:
+                      value: str = 'Green') -> smartsheet.models.Row:
     """ Updates a row's ETS Status Column to Green
+
     Takes a row and a column mapping, and optionally the column name
     and value to change it to.
-    Creates a new row object with the old row's id and cells, then
-    changes the cell with the given column name to be the specified
+
+    Creates a new row object with the old row's id and  non-empty cells,
+    then changes the cell with the given column name to the specified
     value
-    Attempting to change the color to anything but one of the
-    allowed_colors is an AssertionError and the original row is
-    returned unchanged
-    Otherwise, returns the new row object with the updated color column
+
+    Returns the new row object with the updated color column
     """
 
-    allowed_colors = ['Red', 'Yellow', 'Green']
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, [cell for cell in row.cells if cell.value]
-    try:
-        assert color in allowed_colors
-        get_cell_by_column_name(new_row, column_name, column_mapping).value = color
-        return new_row
-    except AssertionError:
-        print(f"Color must be one of: {allowed_colors}. Color was {color}. Row will not be updated")
-    return row
+    get_cell_by_column_name(new_row, column_name, column_mapping).value = value
+    return new_row
 
 
 def check_row(row: smartsheet.models.Row,
@@ -199,29 +199,36 @@ def find_quarter_rows(sheet_id: int, year_row: smartsheet.models.Row) -> list:
     return q_rows
 
 
-def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
-    return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
-
-
 def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
     event_rows = []
     rows = smart.Sheets.get_sheet(sheet_id).rows
     for row in rows:
-        if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the FY
+        if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the Q
             event_rows.append(row)
     return event_rows
 
 
-def sort_quarter_rows(
-    sheet_id: int,
-    quarter_row_id: int,
-    new_row: smartsheet.models.Row, 
-    col_map: dict) -> int:
+def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
+    return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
+
+
+def sort_quarter_rows(sheet_id: int,
+                      quarter_row_id: int,
+                      new_row: smartsheet.models.Row,
+                      col_map: dict) -> int:
     rows_in_quarter = find_event_rows(sheet_id, quarter_row_id)
-    new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row, 'Event Start Date', col_map).value, '%Y-%m-%d').date()
+    new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row,
+                                                                   'Event Start Date',
+                                                                   col_map).value,
+                                           '%Y-%m-%d').date()
     for row in rows_in_quarter:
-        if datetime.strptime(get_cell_by_column_name(row, 'Event Start Date', col_map).value, '%Y-%m-%d').date() > new_row_start_date:
+        row_date = datetime.strptime(get_cell_by_column_name(row,
+                                                             'Event Start Date',
+                                                             col_map).value,
+                                     '%Y-%m-%d').date()
+        if new_row_start_date < row_date:
             return row.id
+
 
 if __name__ == '__main__':
     process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=False)
