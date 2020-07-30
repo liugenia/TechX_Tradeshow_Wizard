@@ -199,10 +199,6 @@ def find_quarter_rows(sheet_id: int, year_row: smartsheet.models.Row) -> list:
     return q_rows
 
 
-def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
-    return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
-
-
 def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
     event_rows = []
     rows = smart.Sheets.get_sheet(sheet_id).rows
@@ -210,6 +206,10 @@ def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
         if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the Q
             event_rows.append(row)
     return event_rows
+
+
+def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
+    return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
 
 
 def sort_quarter_rows(sheet_id: int,
