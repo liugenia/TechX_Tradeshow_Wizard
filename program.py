@@ -1,5 +1,6 @@
+from datetime import datetime
+
 import smartsheet
-from datetime import date, datetime
 
 from FY_Q_sort import calc_fy_q_hardcoded
 
@@ -73,8 +74,6 @@ def send_row(sheet_id: int,
     fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
 
     new_row = smartsheet.models.Row()
-    new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
-    new_row.to_bottom = True
 
     for cell in row.cells:
         if reverse_dict_search(request_column_mapping, cell.column_id) in map_column_mapping.keys():
@@ -83,10 +82,10 @@ def send_row(sheet_id: int,
             new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
             new_row.cells.append(new_cell)
 
-    sib_id = sort_quarter_rows(
-    sheet_id, new_row.parent_id, new_row, request_column_mapping
-    )
-
+    sib_id = sort_quarter_rows(sheet_id,
+                               get_quarter_parent_id(fy, q, fy_q_dict),
+                               new_row,
+                               map_column_mapping)
     if sib_id:
         new_row.sibling_id = sib_id
         new_row.above = True
@@ -207,21 +206,28 @@ def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
     event_rows = []
     rows = smart.Sheets.get_sheet(sheet_id).rows
     for row in rows:
-        if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the FY
+        if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the Q
             event_rows.append(row)
     return event_rows
 
 
-def sort_quarter_rows(
-    sheet_id: int,
-    quarter_row_id: int,
-    new_row: smartsheet.models.Row, 
-    col_map: dict) -> int:
+def sort_quarter_rows(sheet_id: int,
+                      quarter_row_id: int,
+                      new_row: smartsheet.models.Row,
+                      col_map: dict) -> int:
     rows_in_quarter = find_event_rows(sheet_id, quarter_row_id)
-    new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row, 'Event Start Date', col_map).value, '%Y-%m-%d').date()
+    new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row,
+                                                                   'Event Start Date',
+                                                                   col_map).value,
+                                           '%Y-%m-%d').date()
     for row in rows_in_quarter:
-        if datetime.strptime(get_cell_by_column_name(row, 'Event Start Date', col_map).value, '%Y-%m-%d').date() > new_row_start_date:
+        row_date = datetime.strptime(get_cell_by_column_name(row,
+                                                             'Event Start Date',
+                                                             col_map).value,
+                                     '%Y-%m-%d').date()
+        if new_row_start_date < row_date:
             return row.id
+
 
 if __name__ == '__main__':
     process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=False)
