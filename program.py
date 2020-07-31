@@ -14,8 +14,7 @@ MAP_SHEET_ID = 8844668382275460
 
 def process_sheet(request_sheet_id: int,
                   map_sheet_id: int,
-                  simulate: bool = False,
-                  verbose: bool = False) -> None:
+                  simulate: bool = False) -> None:
     """Main loop for processing the sheet
     takes the sheet ids for the request sheet to pull rows from, and
     the map sheet to send rows to. An optional simulate option does not
@@ -32,7 +31,7 @@ def process_sheet(request_sheet_id: int,
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
     column_mapping = column_name_to_id_map(request_sheet_id)
 
-    print_col_headings(column_mapping, verbose)
+    print_col_headings(column_mapping)
 
     for row in rows:
         if check_row(row, column_mapping):
@@ -134,10 +133,9 @@ def check_row(row: smartsheet.models.Row,
     return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
-def print_col_headings(cols: dict, verbose: bool) -> None:  # prints column name and id for all columns, plus FY/Quarter
+def print_col_headings(cols: dict) -> None:  # prints column name and id for all columns, plus FY/Quarter
     print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
-    if verbose:
-        print(*(str(col_id).ljust(16) for col_id in cols.values()))
+    v_print(*(str(col_id).ljust(16) for col_id in cols.values()))
     print()
 
 
@@ -250,4 +248,10 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate, verbose=args.verbose)
+    if args.verbose:
+        def v_print(*print_args, **print_kwargs):
+            print(*print_args, **print_kwargs)
+    else:
+        def v_print(*_, **__):
+            pass
+    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate)
