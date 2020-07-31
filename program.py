@@ -80,14 +80,16 @@ def send_row(sheet_id: int,
     new_row = smartsheet.models.Row()
 
     for cell in row.cells:
-        if reverse_dict_search(request_column_mapping, cell.column_id) in map_column_mapping.keys():
+        column_name = reverse_dict_search(request_column_mapping, cell.column_id)
+        if column_name in map_column_mapping.keys():
             new_cell = smartsheet.models.Cell()
             new_cell.value = cell.value
-            new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
+            new_cell.column_id = map_column_mapping[column_name]
             new_row.cells.append(new_cell)
 
+    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
     sib_id = sort_quarter_rows(sheet_id,
-                               get_quarter_parent_id(fy, q, fy_q_dict),
+                               row_parent_id,
                                new_row,
                                map_column_mapping)
     if sib_id:
@@ -95,7 +97,7 @@ def send_row(sheet_id: int,
         new_row.above = True
         v_print(f'  Found sibling row with ID: {sib_id} (row will be added above its sibling)')
     else:
-        new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
+        new_row.parent_id = row_parent_id
         new_row.to_bottom = True
         v_print(f'  Sibling row not found. Falling back to parent ID of quarter ' +
                 f'row (row will be added to bottom of quarter row\'s children)')
