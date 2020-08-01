@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 
 import smartsheet
@@ -34,6 +35,7 @@ def process_sheet(request_sheet_id: int,
 
     for row in rows:
         if check_row(row, column_mapping):
+            v_print(f'  ^row will be processed')
             print_row(row, column_mapping)
             if not simulate:
                 send_row(sheet_id=map_sheet_id,
@@ -66,32 +68,39 @@ def send_row(sheet_id: int,
     Finally, that row is added to the map sheet
     Does not return anything.
     """
-
+    v_print('  Sending row...')
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row=row,
                                                         column_name='Event Start Date',
                                                         col_map=request_column_mapping).value)
+    v_print(f'  Fiscal Year: {fy}, Quarter: {q}')
     map_column_mapping = column_name_to_id_map(sheet_id)
     fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
+    v_print(f'  Found these fiscal years in sheet:', *list(fy_q_dict))
 
     new_row = smartsheet.models.Row()
 
     for cell in row.cells:
-        if reverse_dict_search(request_column_mapping, cell.column_id) in map_column_mapping.keys():
+        column_name = reverse_dict_search(request_column_mapping, cell.column_id)
+        if column_name in map_column_mapping.keys():
             new_cell = smartsheet.models.Cell()
             new_cell.value = cell.value
-            new_cell.column_id = map_column_mapping[reverse_dict_search(request_column_mapping, cell.column_id)]
+            new_cell.column_id = map_column_mapping[column_name]
             new_row.cells.append(new_cell)
 
+    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
     sib_id = sort_quarter_rows(sheet_id,
-                               get_quarter_parent_id(fy, q, fy_q_dict),
+                               row_parent_id,
                                new_row,
                                map_column_mapping)
     if sib_id:
         new_row.sibling_id = sib_id
         new_row.above = True
+        v_print(f'  Found sibling row with ID: {sib_id} (row will be added above its sibling)')
     else:
-        new_row.parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
+        new_row.parent_id = row_parent_id
         new_row.to_bottom = True
+        v_print(f'  Sibling row not found. Falling back to parent ID of quarter ' +
+                f'row (row will be added to bottom of quarter row\'s children)')
 
     update_row_status(row=new_row,
                       column_mapping=map_column_mapping,
@@ -99,8 +108,10 @@ def send_row(sheet_id: int,
     new_row.cells.append(smartsheet
                          .models.Cell(dict(value=True,
                                            column_id=map_column_mapping['ETS Service Request?'])))
+    v_print('  Checked "ETS Service Request?" column')
 
     smart.Sheets.add_rows(sheet_id, new_row)
+    v_print(f'  Row sent to sheet {sheet_id}!')
 
 
 def update_row_status(row: smartsheet.models.Row,
@@ -122,6 +133,7 @@ def update_row_status(row: smartsheet.models.Row,
     new_row = smartsheet.models.Row()
     new_row.id, new_row.cells = row.id, [cell for cell in row.cells if cell.value]
     get_cell_by_column_name(new_row, column_name, column_mapping).value = value
+    v_print(f'  Updated {column_name} column in row {row.id if row.id is not None else "(no ID yet)"} to {value}')
     return new_row
 
 
@@ -129,12 +141,14 @@ def check_row(row: smartsheet.models.Row,
               column_mapping: dict,
               column_name: str = 'ETS Status',
               val_to_test: str = 'Yellow') -> bool:
+    v_print(f'--checking row {get_cell_by_column_name(row, "Event Name", column_mapping).value} ({row.id}) ')
     return get_cell_by_column_name(row, column_name, column_mapping).value == val_to_test
 
 
-def print_col_headings(cols: dict) -> None:  # prints the column name and id for all columns, plus FY/Quarter
+def print_col_headings(cols: dict) -> None:  # prints column name and id for all columns, plus FY/Quarter
     print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
-    print(*(str(col_id).ljust(16) for col_id in cols.values()), end='\n\n')
+    v_print(*(str(col_id).ljust(16) for col_id in cols.values()))
+    print()
 
 
 def print_row(row: smartsheet.models.Row,
@@ -230,5 +244,26 @@ def sort_quarter_rows(sheet_id: int,
             return row.id
 
 
+def get_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Copy rows selected by Yellow ' +
+                                                 'value in ETS Status column in ' +
+                                                 'Request sheet to Map sheet',
+                                     epilog=f'Written by Eugenia Liu and Daniel Karpelevitch')
+    parser.add_argument('-V', '--version', action='version',
+                        version=f"%(prog)s (beta)")
+    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
+                        help='Enable verbose output')
+    parser.add_argument('-s', '--simulate', action='store_true', dest='simulate',
+                        help="Don't change sheets, just print what rows would be changed")
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=False)
+    args = get_args()
+    if args.verbose:
+        def v_print(*print_args, **print_kwargs) -> None:
+            print(*print_args, **print_kwargs)
+    else:
+        def v_print(*_, **__) -> None:
+            pass
+    process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate)
