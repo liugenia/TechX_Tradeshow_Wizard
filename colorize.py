@@ -1,6 +1,5 @@
 import smartsheet
 
-from program import find_event_rows, find_fy_rows, find_quarter_rows
 
 year_row_color_index = 21
 quarter_and_event_colors = [(12, 5),
@@ -10,12 +9,10 @@ quarter_and_event_colors = [(12, 5),
 
 
 def colorize_rows(smart: smartsheet.Smartsheet, sheet_id: int) -> None:
+    from program import find_event_rows, find_fy_rows, find_quarter_rows
     for year_row in find_fy_rows(sheet_id):
-        print('Year')
         for i, quarter_row in enumerate(find_quarter_rows(sheet_id, year_row)):
-            print(f'    Quarter{i+1}')
             for event_row in find_event_rows(sheet_id, quarter_row.id):
-                print('        Event')
                 new_row = smartsheet.models.Row(dict(id=event_row.id,
                                                      cells=event_row.cells))
 

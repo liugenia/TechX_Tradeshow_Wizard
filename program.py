@@ -3,6 +3,7 @@ from datetime import datetime
 
 import smartsheet
 
+from colorize import colorize_rows
 from FY_Q_sort import calc_fy_q_hardcoded
 
 smart = smartsheet.Smartsheet()  # use 'SMARTSHEET_ACCESS_TOKEN' env variable
@@ -47,6 +48,7 @@ def process_sheet(request_sheet_id: int,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
+    colorize_rows(smart, map_sheet_id)
 
 
 def send_row(sheet_id: int,
