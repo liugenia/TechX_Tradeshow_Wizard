@@ -236,34 +236,32 @@ def indent_q_rows(rows: list, fy_row_id: int) -> None:
 
 
 def add_fyq_rows(fy: int, column_mapping: dict) -> int:
-    fy_row = smartsheet.models.Row()
-    q1_row = smartsheet.models.Row()
-    q2_row = smartsheet.models.Row()
-    q3_row = smartsheet.models.Row()
-    q4_row = smartsheet.models.Row()
+    fy_row = q1_row = q2_row = q3_row = q4_row = smartsheet.models.Row()
+
+    main_column_id = column_mapping['Event Name']
 
     fy_row.cells.append({
-        "column_id": column_mapping['Event Name'],
+        "column_id": main_column_id,
         "value": "FY" + str(fy)
         })
 
     q1_row.cells.append({
-        "column_id": column_mapping['Event Name'],
+        "column_id": main_column_id,
         "value": "Q1"
         })
 
     q2_row.cells.append({
-        "column_id": column_mapping['Event Name'],
+        "column_id": main_column_id,
         "value": "Q2"
         })
 
     q3_row.cells.append({
-        "column_id": column_mapping['Event Name'],
+        "column_id": main_column_id,
         "value": "Q3"
         })
 
     q4_row.cells.append({
-        "column_id": column_mapping['Event Name'],
+        "column_id": main_column_id,
         "value": "Q4"
         })
 
