@@ -89,7 +89,7 @@ def send_row(sheet_id: int,
             new_cell.column_id = map_column_mapping[column_name]
             new_row.cells.append(new_cell)
 
-    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict, map_column_mapping)
+    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict, map_column_mapping, sheet_id)
     sib_id = sort_quarter_rows(sheet_id,
                                row_parent_id,
                                new_row,
@@ -224,9 +224,10 @@ def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
     return event_rows
 
 
-def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict) -> int:
+def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict, sheet_id: int) -> int:
     if ('FY' + str(fy)) not in fy_q_dict:
         add_fyq_rows(fy, column_mapping)
+        fy_q_dict = make_fy_q_dict(sheet_id, column_mapping)
     return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
 
 
