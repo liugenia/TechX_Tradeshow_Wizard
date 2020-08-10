@@ -307,7 +307,7 @@ def get_args() -> argparse.Namespace:
                                                  'Request sheet to Map sheet',
                                      epilog=f'Written by Eugenia Liu and Daniel Karpelevitch')
     parser.add_argument('-V', '--version', action='version',
-                        version=f"%(prog)s (beta)")
+                        version=f"%(prog)s v1.0.0")
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
                         help='Enable verbose output')
     parser.add_argument('-s', '--simulate', action='store_true', dest='simulate',
