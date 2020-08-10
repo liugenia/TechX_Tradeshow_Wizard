@@ -266,7 +266,7 @@ def add_fyq_rows(fy: int, column_mapping: dict) -> int:
         })
 
     fy_add_result = smart.Sheets.add_rows(MAP_SHEET_ID, fy_row)  # add the FY row first
-    fy_row_id = fy_add_result.result.id  # get the id of the row we just added
+    fy_row_id = fy_add_result.result[0].id  # get the id of the row we just added
 
     rows = [q1_row, q2_row, q3_row, q4_row]
     for row in rows:
