@@ -225,11 +225,9 @@ def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
 
 
 def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict) -> int:
-    if fy in fy_q_dict:
-        return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
-    else:
+    if ('FY' + str(fy)) not in fy_q_dict:
         add_fyq_rows(fy, column_mapping)
-        return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
+    return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
 
 
 def indent_q_rows(rows: list, fy_row_id: int) -> None:
