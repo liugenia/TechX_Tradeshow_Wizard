@@ -48,7 +48,9 @@ def process_sheet(request_sheet_id: int,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
+    v_print('Row addition complete, colorizing rows...')
     colorize_rows(smart, map_sheet_id)
+    v_print('All operations complete!')
 
 
 def send_row(sheet_id: int,
