@@ -48,8 +48,9 @@ def process_sheet(request_sheet_id: int,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
-    v_print('Row addition complete, colorizing rows...')
-    colorize_rows(smart, map_sheet_id)
+    if not simulate:
+        v_print('Row addition complete, colorizing rows...')
+        colorize_rows(smart, map_sheet_id)
     v_print('All operations complete!')
 
 
@@ -231,11 +232,6 @@ def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict
         add_fyq_rows(fy, column_mapping)
         fy_q_dict = make_fy_q_dict(sheet_id, column_mapping)
     return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
-
-
-def indent_q_rows(rows: list, fy_row_id: int) -> None:
-    for row in rows:
-        row.parent_id = fy_row_id
 
 
 def add_fyq_rows(fy: int, column_mapping: dict) -> int:
