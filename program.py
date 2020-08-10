@@ -99,7 +99,7 @@ def send_row(sheet_id: int,
         new_row.above = True
         v_print(f'  Found sibling row with ID: {sib_id} (row will be added above its sibling)')
     else:
-        new_row.parent_id=row_parent_id
+        new_row.parent_id = row_parent_id
         new_row.to_bottom = True
         v_print(f'  Sibling row not found. Falling back to parent ID of quarter ' +
                 f'row (row will be added to bottom of quarter row\'s children)')
@@ -228,7 +228,7 @@ def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict
     if fy in fy_q_dict:
         return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
     else:
-        add_fyq_rows(fy, q, column_mapping)
+        add_fyq_rows(fy, column_mapping)
         return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
 
 
@@ -236,7 +236,8 @@ def indent_q_rows(rows: list, fy_row_id: int) -> None:
     for row in rows:
         row.parent_id = fy_row_id
 
-def add_fyq_rows(fy: int, q: int, column_mapping: dict) -> int:
+
+def add_fyq_rows(fy: int, column_mapping: dict) -> int:
     fy_row = smartsheet.models.Row()
     q1_row = smartsheet.models.Row()
     q2_row = smartsheet.models.Row()
@@ -246,27 +247,27 @@ def add_fyq_rows(fy: int, q: int, column_mapping: dict) -> int:
     fy_row.cells.append({
         "column_id": column_mapping['Event Name'],
         "value": "FY" + str(fy)
-    })
+        })
 
     q1_row.cells.append({
         "column_id": column_mapping['Event Name'],
         "value": "Q1"
-    })
+        })
 
     q2_row.cells.append({
         "column_id": column_mapping['Event Name'],
         "value": "Q2"
-    })
+        })
 
     q3_row.cells.append({
         "column_id": column_mapping['Event Name'],
         "value": "Q3"
-    })
+        })
 
     q4_row.cells.append({
         "column_id": column_mapping['Event Name'],
         "value": "Q4"
-    })
+        })
 
     rows = [q1_row, q2_row, q3_row, q4_row]
     for row in rows:
@@ -274,7 +275,7 @@ def add_fyq_rows(fy: int, q: int, column_mapping: dict) -> int:
 
     smart.Sheets.add_rows(MAP_SHEET_ID, [fy_row, q1_row, q2_row, q3_row, q4_row])
 
-    ####FIND A WAY TO INDENT THE QUARTER ROWS PROPERLY####
+    # FIND A WAY TO INDENT THE QUARTER ROWS PROPERLY####
     indent_q_rows(rows, fy_row.id)
 
 
