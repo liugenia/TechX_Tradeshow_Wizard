@@ -265,14 +265,15 @@ def add_fyq_rows(fy: int, column_mapping: dict) -> int:
         "value": "Q4"
         })
 
+    fy_add_result = smart.Sheets.add_rows(MAP_SHEET_ID, fy_row)  # add the FY row first
+    fy_row_id = fy_add_result.result.id  # get the id of the row we just added
+
     rows = [q1_row, q2_row, q3_row, q4_row]
     for row in rows:
+        row.parent_id = fy_row_id  # set all the quarters to be children of the FY
         row.to_bottom = True
 
-    smart.Sheets.add_rows(MAP_SHEET_ID, [fy_row, q1_row, q2_row, q3_row, q4_row])
-
-    # FIND A WAY TO INDENT THE QUARTER ROWS PROPERLY####
-    indent_q_rows(rows, fy_row.id)
+    smart.Sheets.add_rows(MAP_SHEET_ID, rows)
 
 
 def sort_quarter_rows(sheet_id: int,
