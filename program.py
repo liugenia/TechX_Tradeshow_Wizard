@@ -48,7 +48,10 @@ def process_sheet(request_sheet_id: int,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
-    colorize_rows(smart, map_sheet_id)
+    if not simulate:
+        v_print('Row addition complete, colorizing rows...')
+        colorize_rows(smart, map_sheet_id)
+    v_print('All operations complete!')
 
 
 def send_row(sheet_id: int,
@@ -89,7 +92,7 @@ def send_row(sheet_id: int,
             new_cell.column_id = map_column_mapping[column_name]
             new_row.cells.append(new_cell)
 
-    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict)
+    row_parent_id = get_quarter_parent_id(fy, q, fy_q_dict, map_column_mapping, sheet_id)
     sib_id = sort_quarter_rows(sheet_id,
                                row_parent_id,
                                new_row,
@@ -224,8 +227,56 @@ def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
     return event_rows
 
 
-def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict) -> int:
+def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict, sheet_id: int) -> int:
+    if ('FY' + str(fy)) not in fy_q_dict:
+        add_fyq_rows(fy, column_mapping)
+        fy_q_dict = make_fy_q_dict(sheet_id, column_mapping)
     return fy_q_dict['FY' + str(fy)][1]['Q' + str(q)].id
+
+
+def add_fyq_rows(fy: int, column_mapping: dict) -> int:
+    fy_row = smartsheet.models.Row()
+    q1_row = smartsheet.models.Row()
+    q2_row = smartsheet.models.Row()
+    q3_row = smartsheet.models.Row()
+    q4_row = smartsheet.models.Row()
+
+    main_column_id = column_mapping['Event Name']
+
+    fy_row.cells.append({
+        "column_id": main_column_id,
+        "value": "FY" + str(fy)
+        })
+
+    q1_row.cells.append({
+        "column_id": main_column_id,
+        "value": "Q1"
+        })
+
+    q2_row.cells.append({
+        "column_id": main_column_id,
+        "value": "Q2"
+        })
+
+    q3_row.cells.append({
+        "column_id": main_column_id,
+        "value": "Q3"
+        })
+
+    q4_row.cells.append({
+        "column_id": main_column_id,
+        "value": "Q4"
+        })
+
+    fy_add_result = smart.Sheets.add_rows(MAP_SHEET_ID, fy_row)  # add the FY row first
+    fy_row_id = fy_add_result.result[0].id  # get the id of the row we just added
+
+    rows = [q1_row, q2_row, q3_row, q4_row]
+    for row in rows:
+        row.parent_id = fy_row_id  # set all the quarters to be children of the FY
+        row.to_bottom = True
+
+    smart.Sheets.add_rows(MAP_SHEET_ID, rows)
 
 
 def sort_quarter_rows(sheet_id: int,
@@ -252,7 +303,7 @@ def get_args() -> argparse.Namespace:
                                                  'Request sheet to Map sheet',
                                      epilog=f'Written by Eugenia Liu and Daniel Karpelevitch')
     parser.add_argument('-V', '--version', action='version',
-                        version=f"%(prog)s (beta)")
+                        version=f"%(prog)s v1.0.0")
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
                         help='Enable verbose output')
     parser.add_argument('-s', '--simulate', action='store_true', dest='simulate',
