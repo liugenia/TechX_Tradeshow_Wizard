@@ -88,7 +88,7 @@ def send_row(sheet_id: int,
         column_name = reverse_dict_search(request_column_mapping, cell.column_id)
         if column_name in map_column_mapping.keys():
             new_cell = smartsheet.models.Cell()
-            new_cell.value = cell.value
+            new_cell.value = cell.value or ''
             new_cell.column_id = map_column_mapping[column_name]
             new_row.cells.append(new_cell)
 
