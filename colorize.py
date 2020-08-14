@@ -10,6 +10,7 @@ quarter_and_event_colors = [(12, 5),
 
 def colorize_rows(smart: smartsheet.Smartsheet, sheet_id: int) -> None:
     from program import find_event_rows, find_fy_rows, find_quarter_rows
+    rows_to_update = []
     for year_row in find_fy_rows(sheet_id):
         for i, quarter_row in enumerate(find_quarter_rows(sheet_id, year_row)):
             for event_row in find_event_rows(sheet_id, quarter_row.id):
@@ -21,7 +22,7 @@ def colorize_rows(smart: smartsheet.Smartsheet, sheet_id: int) -> None:
                     if not cell.value:
                         cell.value = ''
                 new_row.format = f',,,,,,,,,{quarter_and_event_colors[i][1]},,,,,,'
-                smart.Sheets.update_rows(sheet_id, new_row)
+                rows_to_update.append(new_row)
 
             new_row = smartsheet.models.Row(dict(id=quarter_row.id,
                                                  cells=quarter_row.cells))
@@ -31,7 +32,7 @@ def colorize_rows(smart: smartsheet.Smartsheet, sheet_id: int) -> None:
                 if not cell.value:
                     cell.value = ''
             new_row.format = f',,,,,,,,,{quarter_and_event_colors[i][0]},,,,,,'
-            smart.Sheets.update_rows(sheet_id, new_row)
+            rows_to_update.append(new_row)
 
         new_row = smartsheet.models.Row(dict(id=year_row.id,
                                              cells=year_row.cells))
@@ -41,4 +42,5 @@ def colorize_rows(smart: smartsheet.Smartsheet, sheet_id: int) -> None:
             if not cell.value:
                 cell.value = ''
         new_row.format = f',,,,,,,,,{year_row_color_index},,,,,,'
-        smart.Sheets.update_rows(sheet_id, new_row)
+        rows_to_update.append(new_row)
+    smart.Sheets.update_rows(sheet_id, rows_to_update)
