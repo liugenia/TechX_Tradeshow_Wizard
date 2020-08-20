@@ -30,21 +30,23 @@ def process_sheet(request_sheet_id: int,
     """
 
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
-    column_mapping = column_name_to_id_map(request_sheet_id)
+    request_column_mapping = column_name_to_id_map(request_sheet_id)
+    map_column_mapping = column_name_to_id_map(map_sheet_id)
 
-    print_col_headings(column_mapping)
+    print_col_headings(request_column_mapping)
 
     for row in rows:
-        if check_row(row, column_mapping):
+        if check_row(row, request_column_mapping):
             v_print(f'  ^row will be processed')
-            print_row(row, column_mapping)
+            print_row(row, request_column_mapping)
             if not simulate:
                 send_row(sheet_id=map_sheet_id,
                          row=row,
-                         request_column_mapping=column_mapping)
+                         request_column_mapping=request_column_mapping,
+                         map_column_mapping=map_column_mapping)
                 smart.Sheets.update_rows(request_sheet_id,
                                          update_row_status(row=row,
-                                                           column_mapping=column_mapping,
+                                                           column_mapping=request_column_mapping,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
@@ -56,7 +58,8 @@ def process_sheet(request_sheet_id: int,
 
 def send_row(sheet_id: int,
              row: smartsheet.models.Row,
-             request_column_mapping: dict) -> None:
+             request_column_mapping: dict,
+             map_column_mapping: dict) -> None:
     """Main function for sending each row
     Takes the map sheet id, the row to be sent, and the request sheet
     {name: id} column map.
@@ -78,7 +81,6 @@ def send_row(sheet_id: int,
                                                         column_name='Event Start Date',
                                                         col_map=request_column_mapping).value)
     v_print(f'  Fiscal Year: {fy}, Quarter: {q}')
-    map_column_mapping = column_name_to_id_map(sheet_id)
     fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
     v_print(f'  Found these fiscal years in sheet:', *list(fy_q_dict))
 
