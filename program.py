@@ -195,7 +195,7 @@ def make_fy_q_dict(sheet_id: int,
                                              column_name,
                                              column_mapping).value): [fy, {}] for fy in find_fy_rows(sheet_id)}
     for year, (year_row, _) in fy_q_dict.items():
-        quarters = find_quarter_rows(sheet_id, year_row)
+        quarters = find_child_rows(sheet_id, year_row.id)
         fy_q_dict[year][1] = {get_cell_by_column_name(quarter,
                                                       column_name,
                                                       column_mapping).value: quarter for quarter in quarters}
@@ -203,30 +203,13 @@ def make_fy_q_dict(sheet_id: int,
 
 
 def find_fy_rows(sheet_id: int) -> list:
-    # fy_rows = []
-    # rows = smart.Sheets.get_sheet(sheet_id).rows
-    # for row in rows:
-    #     if not row.to_dict().get('parentId', False):  # checks if row has a parent
-    #         fy_rows.append(row)
-    # return fy_rows
     return (row for row in smart.Sheets.get_sheet(sheet_id).rows
             if not row.to_dict().get('parentId', False))
 
 
-def find_quarter_rows(sheet_id: int, year_row: smartsheet.models.Row) -> list:
+def find_child_rows(sheet_id: int, parent_row_id: int) -> list:
     return (row for row in smart.Sheets.get_sheet(sheet_id).rows
-            if row.to_dict().get('parentId', False) == year_row.id)
-
-
-def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
-    # event_rows = []
-    # rows = smart.Sheets.get_sheet(sheet_id).rows
-    # for row in rows:
-    #     if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the Q
-    #         event_rows.append(row)
-    # return event_rows
-    return (row for row in smart.Sheets.get_sheet(sheet_id).rows
-            if row.to_dict().get('parentId', False) == quarter_row_id)
+            if row.to_dict().get('parentId', False) == parent_row_id)
 
 
 def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict, sheet_id: int) -> int:
@@ -285,7 +268,7 @@ def sort_quarter_rows(sheet_id: int,
                       quarter_row_id: int,
                       new_row: smartsheet.models.Row,
                       col_map: dict) -> int:
-    rows_in_quarter = find_event_rows(sheet_id, quarter_row_id)
+    rows_in_quarter = find_child_rows(sheet_id, quarter_row_id)
     new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row,
                                                                    'Event Start Date',
                                                                    col_map).value,
