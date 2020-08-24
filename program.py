@@ -30,21 +30,23 @@ def process_sheet(request_sheet_id: int,
     """
 
     rows = smart.Sheets.get_sheet(request_sheet_id).rows
-    column_mapping = column_name_to_id_map(request_sheet_id)
+    request_column_mapping = column_name_to_id_map(request_sheet_id)
+    map_column_mapping = column_name_to_id_map(map_sheet_id)
 
-    print_col_headings(column_mapping)
+    print_col_headings(request_column_mapping)
 
     for row in rows:
-        if check_row(row, column_mapping):
+        if check_row(row, request_column_mapping):
             v_print(f'  ^row will be processed')
-            print_row(row, column_mapping)
+            print_row(row, request_column_mapping)
             if not simulate:
                 send_row(sheet_id=map_sheet_id,
                          row=row,
-                         request_column_mapping=column_mapping)
+                         request_column_mapping=request_column_mapping,
+                         map_column_mapping=map_column_mapping)
                 smart.Sheets.update_rows(request_sheet_id,
                                          update_row_status(row=row,
-                                                           column_mapping=column_mapping,
+                                                           column_mapping=request_column_mapping,
                                                            value='Green'))
             else:
                 print('Simulation! This row would have been updated to green and added to the map sheet.\n')
@@ -56,7 +58,8 @@ def process_sheet(request_sheet_id: int,
 
 def send_row(sheet_id: int,
              row: smartsheet.models.Row,
-             request_column_mapping: dict) -> None:
+             request_column_mapping: dict,
+             map_column_mapping: dict) -> None:
     """Main function for sending each row
     Takes the map sheet id, the row to be sent, and the request sheet
     {name: id} column map.
@@ -78,7 +81,6 @@ def send_row(sheet_id: int,
                                                         column_name='Event Start Date',
                                                         col_map=request_column_mapping).value)
     v_print(f'  Fiscal Year: {fy}, Quarter: {q}')
-    map_column_mapping = column_name_to_id_map(sheet_id)
     fy_q_dict = make_fy_q_dict(sheet_id, map_column_mapping)
     v_print(f'  Found these fiscal years in sheet:', *list(fy_q_dict))
 
@@ -193,7 +195,7 @@ def make_fy_q_dict(sheet_id: int,
                                              column_name,
                                              column_mapping).value): [fy, {}] for fy in find_fy_rows(sheet_id)}
     for year, (year_row, _) in fy_q_dict.items():
-        quarters = find_quarter_rows(sheet_id, year_row)
+        quarters = find_child_rows(sheet_id, year_row.id)
         fy_q_dict[year][1] = {get_cell_by_column_name(quarter,
                                                       column_name,
                                                       column_mapping).value: quarter for quarter in quarters}
@@ -201,30 +203,13 @@ def make_fy_q_dict(sheet_id: int,
 
 
 def find_fy_rows(sheet_id: int) -> list:
-    # fy_rows = []
-    # rows = smart.Sheets.get_sheet(sheet_id).rows
-    # for row in rows:
-    #     if not row.to_dict().get('parentId', False):  # checks if row has a parent
-    #         fy_rows.append(row)
-    # return fy_rows
     return (row for row in smart.Sheets.get_sheet(sheet_id).rows
             if not row.to_dict().get('parentId', False))
 
 
-def find_quarter_rows(sheet_id: int, year_row: smartsheet.models.Row) -> list:
+def find_child_rows(sheet_id: int, parent_row_id: int) -> list:
     return (row for row in smart.Sheets.get_sheet(sheet_id).rows
-            if row.to_dict().get('parentId', False) == year_row.id)
-
-
-def find_event_rows(sheet_id: int, quarter_row_id: int) -> list:
-    # event_rows = []
-    # rows = smart.Sheets.get_sheet(sheet_id).rows
-    # for row in rows:
-    #     if row.to_dict().get('parentId', False) == quarter_row_id:  # checks if row's parent is the Q
-    #         event_rows.append(row)
-    # return event_rows
-    return (row for row in smart.Sheets.get_sheet(sheet_id).rows
-            if row.to_dict().get('parentId', False) == quarter_row_id)
+            if row.to_dict().get('parentId', False) == parent_row_id)
 
 
 def get_quarter_parent_id(fy: int, q: int, fy_q_dict: dict, column_mapping: dict, sheet_id: int) -> int:
@@ -283,7 +268,7 @@ def sort_quarter_rows(sheet_id: int,
                       quarter_row_id: int,
                       new_row: smartsheet.models.Row,
                       col_map: dict) -> int:
-    rows_in_quarter = find_event_rows(sheet_id, quarter_row_id)
+    rows_in_quarter = find_child_rows(sheet_id, quarter_row_id)
     new_row_start_date = datetime.strptime(get_cell_by_column_name(new_row,
                                                                    'Event Start Date',
                                                                    col_map).value,
@@ -303,7 +288,7 @@ def get_args() -> argparse.Namespace:
                                                  'Request sheet to Map sheet',
                                      epilog=f'Written by Eugenia Liu and Daniel Karpelevitch')
     parser.add_argument('-V', '--version', action='version',
-                        version=f"%(prog)s v1.0.2")
+                        version=f"%(prog)s v1.0.3")
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
                         help='Enable verbose output')
     parser.add_argument('-s', '--simulate', action='store_true', dest='simulate',
