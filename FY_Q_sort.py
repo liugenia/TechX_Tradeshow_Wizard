@@ -19,7 +19,7 @@ YEARS_AND_QUARTERS = {
         3: (date(2022, 1, 24), date(2022, 5, 1)),
         4: (date(2022, 5, 2), date(2022, 7, 31))
         }
-}
+    }
 
 
 def calc_fy_q_hardcoded(input_date):
@@ -38,7 +38,7 @@ def print_quarters():
         for quarter, time_range in quarters.items():
             print(f'\tQ{quarter}:')
             print(f'\t\ttime range: {time_range[0]} – {time_range[1]}')
-            print(f'\t\tduration: {(time_range[1]-time_range[0]).days}')
+            print(f'\t\tduration: {(time_range[1] - time_range[0]).days}')
 
 
 if __name__ == '__main__':
