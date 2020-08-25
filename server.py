@@ -18,3 +18,9 @@ def webhook():
         print('Running program.py')  # todo: add multithreading so we don't wait for program.py to finish
         process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID)
     return response
+
+
+@app.route('/')
+@app.route('/admin')
+def admin():
+    return '<h1>Admin Page (Work In Progress)</h1>'
