@@ -15,7 +15,7 @@ def webhook():
     if 'Smartsheet-Hook-Challenge' in request.headers:
         print('***Verification Request***')
         response.headers['Smartsheet-Hook-Challenge'] = request.headers['Smartsheet-Hook-Challenge']
-    else:
+    elif 'events' in request.json:
         print('Running program.py')  # todo: add multithreading so we don't wait for program.py to finish
         process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID)
     return response
