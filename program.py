@@ -13,6 +13,10 @@ REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
 
 
+def v_print(*_, **__) -> None:
+    pass
+
+
 def process_sheet(request_sheet_id: int,
                   map_sheet_id: int,
                   simulate: bool = False) -> None:
