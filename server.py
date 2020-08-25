@@ -8,7 +8,9 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     response = Response(status=200)
-    print('Received POST request, here is the JSON:\n', request.json)
+    print('Received POST request.')
+    print('Headers:\n', request.headers)
+    print('JSON:\n', request.json)
 
     if 'Smartsheet-Hook-Challenge' in request.headers:
         print('***Verification Request***')
