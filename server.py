@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 
 @app.route('/webhook', methods=['POST'])
-def respond():
+def webhook():
     response = Response(status=200)
     print('Received POST request, here is the JSON:\n', request.json)
 
