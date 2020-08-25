@@ -305,7 +305,4 @@ if __name__ == '__main__':
     if args.verbose:
         def v_print(*print_args, **print_kwargs) -> None:
             print(*print_args, **print_kwargs)
-    else:
-        def v_print(*_, **__) -> None:
-            pass
     process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate)
