@@ -1,40 +1,64 @@
-from program import MAP_SHEET_ID
+from program import REQUEST_SHEET_ID, smart
 import smartsheet
 
-smart = smartsheet.Smartsheet()
-smart.errors_as_exceptions(True)
-
-def create_hook():
+def create_hook(name, url): #http://d0995f8bf79e.ngrok.io/webhooks'
     webhook = smart.Webhooks.create_webhook(
     smartsheet.models.Webhook({
-        'name': 'Update TechX Map',
-        'callbackUrl': 'https://www.myApp.com/webhooks',
+        'name': name,
+        'callbackUrl': url,
         'scope': 'sheet',
-        'scopeObjectId': MAP_SHEET_ID,
+        'scopeObjectId': REQUEST_SHEET_ID,
         'events': ['*.*'],
         'version': 1}))
     return webhook
 
-def list_hookIDs():
-    webhook = smart.Webhooks.list_webhooks(
+
+def list_hooks():
+    hooks = smart.Webhooks.list_webhooks(
         page_size=100,
         page=1,
-        include_all=False)
-    return webhook
+        include_all=False).data
+    for hook in hooks:
+        print(hook.id, hook.name, hook.status, hook.callback_url)
+    return hooks
+
 
 def delete_hook(hook_id):
     smart.Webhooks.delete_webhook(
-    hook_id) 
+    hook_id)
+
 
 def delete_all():
-    pass
+    for hook in list_hooks():
+        smart.Webhooks.delete_webhook(
+        hook.id)
 
-def update_hook():
-#     smartsheet_client.Webhooks.update_webhook(
-#   8444254503626628,       # webhook_id
-#   smartsheet_client.models.Webhook({
-#     'enabled': True}))
+
+def update_hook(hook_id):
+    smart.Webhooks.update_webhook(
+        hook_id,
+        smart.models.Webhook({
+            'enabled': True}))
+
 
 def program(): #make a handler for all the different options listed
-    print("What would you like to do?")
-    print("Create, List, Update, Delete")
+    while True:
+        print("What would you like to do?")
+        response = input("Create, List, Update, Delete, All Delete? ")
+        if response.lower()[0] == 'c':
+                create_hook(input("Hook name: "), input("Hook url: "))
+        elif response.lower()[0] == 'l':
+                list_hooks()
+        elif response.lower()[0] == 'd':
+            delete_hook(input('Hook ID: '))
+        elif response.lower()[0] == 'a':
+            delete_all()
+        elif response.lower()[0] == 'u':
+            update_hook(input("Hook ID: "))
+        elif response.lower()[0] == 'q':
+            break
+        else:
+            print("Not a valid response!")
+
+if __name__ == "__main__":
+    program()
