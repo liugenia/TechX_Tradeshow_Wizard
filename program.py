@@ -13,6 +13,10 @@ REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
 
 
+def v_print(*_, **__) -> None:
+    pass
+
+
 def process_sheet(request_sheet_id: int,
                   map_sheet_id: int,
                   simulate: bool = False) -> None:
@@ -301,7 +305,4 @@ if __name__ == '__main__':
     if args.verbose:
         def v_print(*print_args, **print_kwargs) -> None:
             print(*print_args, **print_kwargs)
-    else:
-        def v_print(*_, **__) -> None:
-            pass
     process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate)
