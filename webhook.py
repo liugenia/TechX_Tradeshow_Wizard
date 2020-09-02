@@ -1,4 +1,6 @@
 import smartsheet
+from colorama import deinit, init
+from termcolor import colored
 
 from program import column_name_to_id_map, REQUEST_SHEET_ID, smart
 
@@ -31,7 +33,20 @@ def print_webhooks():
 
 
 def print_webhook(hook):
-    print(hook.id, hook.name, hook.status, hook.callback_url)
+    init()
+
+    color = 'red'
+    if hook.enabled:
+        color = 'green'
+    elif hook.status == 'NEW_NOT_VERIFIED':
+        color = 'yellow'
+
+    print(hook.id,
+          hook.name,
+          colored(hook.status, color),
+          hook.callback_url, sep='\t')
+
+    deinit()
 
 
 def delete_hook(hook_id):
