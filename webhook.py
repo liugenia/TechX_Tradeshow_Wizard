@@ -1,6 +1,8 @@
 import smartsheet
 
-from program import REQUEST_SHEET_ID, smart
+from program import column_name_to_id_map, REQUEST_SHEET_ID, smart
+
+subscope_column_id = column_name_to_id_map(REQUEST_SHEET_ID)['ETS Status']
 
 
 def create_hook(name, url):  # http://d0995f8bf79e.ngrok.io/webhooks'
