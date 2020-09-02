@@ -6,23 +6,32 @@ subscope_column_id = column_name_to_id_map(REQUEST_SHEET_ID)['ETS Status']
 
 
 def create_hook(name, url):  # http://d0995f8bf79e.ngrok.io/webhooks'
-    webhook = smart.Webhooks.create_webhook(
+    hook = smart.Webhooks.create_webhook(
         smartsheet.models.Webhook({'name': name,
                                    'callbackUrl': url,
                                    'scope': 'sheet',
                                    'scopeObjectId': REQUEST_SHEET_ID,
                                    'events': ['*.*'],
-                                   'version': 1}))
-    return webhook
+                                   'version': 1})).result
+    print_webhook(hook)
+    return hook
 
 
 def list_hooks():
-    hooks = smart.Webhooks.list_webhooks(page_size=100,
-                                         page=1,
-                                         include_all=False).data
+    return smart.Webhooks.list_webhooks(page_size=100,
+                                        page=1,
+                                        include_all=False).data
+
+
+def print_webhooks():
+    hooks = list_hooks()
     for hook in hooks:
-        print(hook.id, hook.name, hook.status, hook.callback_url)
+        print_webhook(hook)
     return hooks
+
+
+def print_webhook(hook):
+    print(hook.id, hook.name, hook.status, hook.callback_url)
 
 
 def delete_hook(hook_id):
@@ -42,11 +51,11 @@ def update_hook(hook_id):
 def program():  # make a handler for all the different options listed
     while True:
         print("What would you like to do?")
-        response = input("Create, List, Update, Delete, All Delete? ")
+        response = input("Create, Print, Update, Delete, All Delete, Quit? ")
         if response.lower()[0] == 'c':
             create_hook(input("Hook name: "), input("Hook url: "))
-        elif response.lower()[0] == 'l':
-            list_hooks()
+        elif response.lower()[0] == 'p':
+            print_webhooks()
         elif response.lower()[0] == 'd':
             delete_hook(input('Hook ID: '))
         elif response.lower()[0] == 'a':
