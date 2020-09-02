@@ -9,6 +9,9 @@ from FY_Q_sort import calc_fy_q_hardcoded
 smart = smartsheet.Smartsheet()  # use 'SMARTSHEET_ACCESS_TOKEN' env variable
 smart.errors_as_exceptions(True)
 
+CHANGE_AGENT = 'techx_smartsheet'
+smart.with_change_agent(CHANGE_AGENT)
+
 REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
 
