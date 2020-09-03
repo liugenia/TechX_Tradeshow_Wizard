@@ -56,7 +56,7 @@ def delete_hook(hook_id):
 
 def delete_all():
     for hook in list_hooks():
-        smart.Webhooks.delete_webhook(hook.id)
+        delete_hook(hook.id)
 
 
 def update_hook(hook_id):
