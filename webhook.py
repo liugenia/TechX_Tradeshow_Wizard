@@ -20,9 +20,7 @@ def create_hook(name, url):  # http://d0995f8bf79e.ngrok.io/webhooks'
 
 
 def list_hooks():
-    return smart.Webhooks.list_webhooks(page_size=100,
-                                        page=1,
-                                        include_all=False).data
+    return smart.Webhooks.list_webhooks(include_all=True).data
 
 
 def print_webhooks():
