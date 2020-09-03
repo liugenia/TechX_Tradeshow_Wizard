@@ -59,8 +59,10 @@ def delete_all():
 
 
 def update_hook(hook_id):
-    smart.Webhooks.update_webhook(hook_id,
-                                  smart.models.Webhook({'enabled': True}))
+    hook = smart.Webhooks.update_webhook(hook_id,
+                                         smart.models.Webhook({'enabled': True})).result
+    print_webhook(hook)
+    return hook
 
 
 def program():  # make a handler for all the different options listed
