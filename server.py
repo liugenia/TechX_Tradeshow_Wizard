@@ -15,9 +15,11 @@ def webhook():
     response = Response(status=200)
     print('\n----------------------')
     print('Received POST request.')
-    print('Headers:\n', request.headers)
+    print('Headers:')
+    print(request.headers)
     print('JSON:')
     pprint(req_json)
+    print('\n')
 
     if req_json:
         if 'challenge' in req_json:
@@ -28,7 +30,7 @@ def webhook():
             if all(CHANGE_AGENT in event.get('changeAgent', '') for event in req_json['events']):
                 print('Received callback due to updates that were all done by this program; ignoring to avoid loops ')
             else:
-                print('Running program.py')
+                print('***Running program.py***')
                 threading.Thread(target=process_sheet, args=[REQUEST_SHEET_ID, MAP_SHEET_ID]).start()
 
     return response
