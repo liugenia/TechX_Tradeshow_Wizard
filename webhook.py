@@ -44,7 +44,8 @@ def print_webhook(hook):
     print(hook.id,
           hook.name,
           colored(hook.status, color),
-          hook.callback_url, sep='\t')
+          hook.callback_url,
+          sep='   ')
 
     deinit()
 
