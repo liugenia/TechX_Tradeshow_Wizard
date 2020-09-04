@@ -12,13 +12,12 @@ MAIN_MENU = ['****WEBHOOK MENU****',
 
 def create_hook(name, url): #http://d0995f8bf79e.ngrok.io/webhooks'; edit the subscope to make it watch for certain columns
     webhook = smart.Webhooks.create_webhook(
-    smartsheet.models.Webhook({
-        'name': name,
-        'callbackUrl': url,
-        'scope': 'sheet',
-        'scopeObjectId': REQUEST_SHEET_ID,
-        'events': ['*.*'],
-        'version': 1}))
+        smartsheet.models.Webhook({'name': name,
+                                   'callbackUrl': url,
+                                   'scope': 'sheet',
+                                   'scopeObjectId': REQUEST_SHEET_ID,
+                                   'events': ['*.*'],
+                                   'version': 1}))
     return webhook
 
 
@@ -84,6 +83,7 @@ def main_menu(): #handler for all the different options listed
             update_hook(select_hook().id)
         elif choice == 6:
             break
+
 
 
 if __name__ == "__main__":
