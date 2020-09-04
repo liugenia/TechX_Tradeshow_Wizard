@@ -56,7 +56,7 @@ def process_sheet(request_sheet_id: int,
                                                            column_mapping=request_column_mapping,
                                                            value='Green'))
             else:
-                print('Simulation! This row would have been updated to green and added to the map sheet.\n')
+                v_print('Simulation! This row would have been updated to green and added to the map sheet.\n')
     if not simulate:
         v_print('Row addition complete, colorizing rows...')
         colorize_rows(smart, map_sheet_id)
@@ -160,18 +160,18 @@ def check_row(row: smartsheet.models.Row,
 
 
 def print_col_headings(cols: dict) -> None:  # prints column name and id for all columns, plus FY/Quarter
-    print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
+    v_print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
     v_print(*(str(col_id).ljust(16) for col_id in cols.values()))
-    print()
+    v_print()
 
 
 def print_row(row: smartsheet.models.Row,
               column_mapping: dict,
               column_name: str = 'Event Start Date') -> None:
     # format, print the columns in the row + FY/Quarter
-    print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
+    v_print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping).value)
-    print(f'FY{fy} Q{q}')
+    v_print(f'FY{fy} Q{q}')
 
 
 def column_format(item: str, just: int = 16) -> str:
