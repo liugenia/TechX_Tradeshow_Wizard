@@ -93,10 +93,12 @@ def main_menu():  # handler for all the different options listed
         elif choice == 2:
             print_hooks()
         elif choice == 3:
+            print('**Select webhook to delete:**')
             delete_hook(select_hook().id)
         elif choice == 4:
             delete_all()
         elif choice == 5:
+            print('**Select webhook to update:**')
             update_hook(select_hook().id)
         elif choice == 6:
             break
