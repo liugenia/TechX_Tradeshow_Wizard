@@ -36,20 +36,20 @@ def format_hooks(hook_list=None):  # lists hook ID, name, status, URL
     if hook_list is None:
         hook_list = list_hooks()
     elif not isinstance(hook_list, list):
-        hook_list = list(hook_list)
+        hook_list = [hook_list]
     init()
-    result = ['   '.join([hook.id, hook.name, colorizer(hook.status), hook.callback_url]) for hook in hook_list]
+    result = ['   '.join([str(hook.id), hook.name, status_colorizer(hook), hook.callback_url]) for hook in hook_list]
     deinit()
     return result
 
 
-def colorizer(hook):
+def status_colorizer(hook):
     color = 'red'
     if hook.enabled:
         color = 'green'
     elif hook.status == 'NEW_NOT_VERIFIED':
         color = 'yellow'
-    return colored(hook, color)
+    return colored(hook.status, color)
 
 
 def print_hooks():  # prints out the formatted webhooks
