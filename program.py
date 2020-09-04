@@ -9,8 +9,15 @@ from FY_Q_sort import calc_fy_q_hardcoded
 smart = smartsheet.Smartsheet()  # use 'SMARTSHEET_ACCESS_TOKEN' env variable
 smart.errors_as_exceptions(True)
 
+CHANGE_AGENT = 'techx_smartsheet'
+smart.with_change_agent(CHANGE_AGENT)
+
 REQUEST_SHEET_ID = 4026093033285508
 MAP_SHEET_ID = 8844668382275460
+
+
+def v_print(*_, **__) -> None:
+    pass
 
 
 def process_sheet(request_sheet_id: int,
@@ -49,7 +56,7 @@ def process_sheet(request_sheet_id: int,
                                                            column_mapping=request_column_mapping,
                                                            value='Green'))
             else:
-                print('Simulation! This row would have been updated to green and added to the map sheet.\n')
+                v_print('Simulation! This row would have been updated to green and added to the map sheet.\n')
     if not simulate:
         v_print('Row addition complete, colorizing rows...')
         colorize_rows(smart, map_sheet_id)
@@ -153,18 +160,18 @@ def check_row(row: smartsheet.models.Row,
 
 
 def print_col_headings(cols: dict) -> None:  # prints column name and id for all columns, plus FY/Quarter
-    print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
+    v_print(*(column_format(col_title) for col_title in cols.keys()), 'FY/Quarter')
     v_print(*(str(col_id).ljust(16) for col_id in cols.values()))
-    print()
+    v_print()
 
 
 def print_row(row: smartsheet.models.Row,
               column_mapping: dict,
               column_name: str = 'Event Start Date') -> None:
     # format, print the columns in the row + FY/Quarter
-    print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
+    v_print(*(column_format(cell.display_value or cell.value) for cell in row.cells), sep=' ', end=' ')
     fy, q = calc_fy_q_hardcoded(get_cell_by_column_name(row, column_name, column_mapping).value)
-    print(f'FY{fy} Q{q}')
+    v_print(f'FY{fy} Q{q}')
 
 
 def column_format(item: str, just: int = 16) -> str:
@@ -301,7 +308,4 @@ if __name__ == '__main__':
     if args.verbose:
         def v_print(*print_args, **print_kwargs) -> None:
             print(*print_args, **print_kwargs)
-    else:
-        def v_print(*_, **__) -> None:
-            pass
     process_sheet(REQUEST_SHEET_ID, MAP_SHEET_ID, simulate=args.simulate)
